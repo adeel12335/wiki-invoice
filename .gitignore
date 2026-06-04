@@ -1,0 +1,14 @@
+# ── Local dev ──────────────────────────────────────────────────────────────────
+.env
+.env.local
+
+# ── Supabase secrets (contains anon key, never commit) ────────────────────────
+supabase-config.js
+
+# ── OS junk ───────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Editor folders ────────────────────────────────────────────────────────────
+.vscode/
+.idea/

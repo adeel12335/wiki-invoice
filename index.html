@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WikiStudi Invoice Portal</title>
+    <meta name="description" content="WikiStudi secure invoice management portal — create, track, and export professional invoices." />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main id="loginScreen" class="login-screen">
+      <section class="login-copy">
+        <div class="brand-mark large">
+          <span>W</span>
+          <div>
+            <strong>WikiStudi</strong>
+            <small>Invoice operations portal</small>
+          </div>
+        </div>
+        <h1>Manage clients, invoices, payments and PDF exports from one clean workspace.</h1>
+        <div class="login-stats">
+          <span><strong>6</strong>Status stages</span>
+          <span><strong>PDF</strong>Ready invoices</span>
+          <span><strong>DB</strong>Supabase ready</span>
+        </div>
+      </section>
+
+      <section class="login-card">
+        <p class="eyebrow">Secure access</p>
+        <h2>Sign in</h2>
+        <form id="loginForm">
+          <label>
+            Email
+            <input name="email" type="email" value="admin@wikistudi.com" />
+          </label>
+          <label>
+            Password
+            <input name="password" type="password" value="demo1234" />
+          </label>
+          <button class="primary" type="submit">Login to dashboard</button>
+        </form>
+        <p class="hint">Sign in with your admin credentials. Contact the portal owner for access.</p>
+      </section>
+    </main>
+
+    <main id="portalApp" class="portal-shell hidden">
+      <aside class="sidebar" aria-label="Portal navigation">
+        <div class="brand-mark">
+          <span>W</span>
+          <div>
+            <strong>WikiStudi</strong>
+            <small>Admin Portal</small>
+          </div>
+        </div>
+
+        <nav class="side-nav" aria-label="Main">
+          <button class="nav-link active" type="button" data-tab="dashboard">Dashboard</button>
+          <button class="nav-link" type="button" data-tab="invoices">Invoices</button>
+          <button class="nav-link" type="button" data-tab="clients">Clients</button>
+          <button class="nav-link" type="button" data-tab="editor">Create Invoice</button>
+        </nav>
+
+        <div class="user-panel">
+          <span class="avatar">BW</span>
+          <div>
+            <strong>Benjamin Wiki</strong>
+            <small id="signedInEmail">admin@wikistudi.com</small>
+          </div>
+        </div>
+
+        <button id="logoutButton" class="nav-action" type="button">Logout</button>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Operations dashboard</p>
+            <h1 id="pageTitle">Dashboard</h1>
+          </div>
+          <button id="quickNewInvoice" class="primary" type="button">New invoice</button>
+        </header>
+
+        <section class="tab-panel active" id="dashboardPanel" data-panel="dashboard">
+          <div class="metrics-grid">
+            <article class="metric-card">
+              <span>Total Invoices</span>
+              <strong id="metricInvoices">0</strong>
+            </article>
+            <article class="metric-card">
+              <span>Total Revenue</span>
+              <strong id="metricRevenue">$0</strong>
+            </article>
+            <article class="metric-card">
+              <span>Outstanding</span>
+              <strong id="metricOutstanding">$0</strong>
+            </article>
+            <article class="metric-card">
+              <span>Clients</span>
+              <strong id="metricClients">0</strong>
+            </article>
+          </div>
+
+          <section class="dashboard-grid">
+            <article class="panel-card">
+              <div class="section-heading">
+                <div>
+                  <h2>Invoice Status</h2>
+                  <p>Live status counters for follow-up.</p>
+                </div>
+              </div>
+              <div id="statusCounters" class="status-counters"></div>
+            </article>
+
+            <article class="panel-card">
+              <div class="section-heading">
+                <div>
+                  <h2>Revenue Snapshot</h2>
+                  <p>Simple chart from saved invoice totals.</p>
+                </div>
+              </div>
+              <div id="revenueChart" class="bar-chart"></div>
+            </article>
+          </section>
+        </section>
+
+        <section class="tab-panel" id="invoicesPanel" data-panel="invoices">
+          <article class="panel-card">
+            <div class="section-heading">
+              <div>
+                <h2>Invoice Records</h2>
+                <p>Edit invoices or open the client-facing invoice view in a new tab.</p>
+              </div>
+              <span id="saveMessage" class="save-message" role="status"></span>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Invoice</th>
+                    <th>Client</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="invoiceRows"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section class="tab-panel" id="clientsPanel" data-panel="clients">
+          <article class="panel-card">
+            <div class="section-heading">
+              <div>
+                <h2>Client Directory</h2>
+                <p>Save clients once, then reuse them in new invoices.</p>
+              </div>
+              <button id="saveClient" type="button">Save current client</button>
+            </div>
+            <input id="clientSearch" class="client-search" type="search" placeholder="Search clients by name, email or phone" />
+            <div id="clientList" class="client-grid" aria-label="Saved clients"></div>
+          </article>
+        </section>
+
+        <section class="tab-panel" id="editorPanel" data-panel="editor">
+          <section class="editor-layout">
+            <article class="panel-card">
+              <div class="section-heading">
+                <div>
+                  <h2>Invoice Builder</h2>
+                  <p>All fields update the PDF preview instantly.</p>
+                </div>
+                <div class="button-row">
+                  <button id="newInvoice" type="button">Clear</button>
+                  <button id="saveInvoice" class="primary" type="button">Save invoice</button>
+                </div>
+              </div>
+
+              <form id="invoiceForm" class="form-grid">
+                <fieldset>
+                  <legend>Company</legend>
+                  <label>Company name <input name="companyName" value="The WikiStudi" /></label>
+                  <label>Phone <input name="companyPhone" value="+1 (218) 305-9586" /></label>
+                  <label>Email <input name="companyEmail" value="benjamin.wikieditor@gmail.com" /></label>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Invoice</legend>
+                  <label>Invoice number <input name="invoiceNumber" value="WIKI-0164" /></label>
+                  <label>Date issued <input name="dateIssued" value="19/05/2026" /></label>
+                  <label>Due date <input name="dueDate" value="23/05/2026" /></label>
+                  <label>
+                    Status
+                    <select name="status">
+                      <option>Draft</option>
+                      <option>Sent</option>
+                      <option>Partially Paid</option>
+                      <option>Paid</option>
+                      <option>Overdue</option>
+                      <option>Cancelled</option>
+                    </select>
+                  </label>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Client</legend>
+                  <label>Client name <input name="clientName" value="William Clohesy" /></label>
+                  <label>Client email <input name="clientEmail" value="william.clohesy@uni.edu" /></label>
+                  <label>Client phone <input name="clientPhone" /></label>
+                  <label>Client address <textarea name="clientAddress" rows="2"></textarea></label>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Payment</legend>
+                  <label>
+                    Payment link
+                    <textarea name="paymentLink" rows="3">https://link.payoneer.com/Token?t=90505B2800E3441C83847EEFBF08182B&src=pl</textarea>
+                  </label>
+                  <label>Deposit <input name="deposit" type="number" value="187" /></label>
+                  <label>
+                    Terms
+                    <textarea name="terms" rows="2">Payment is due in 4 days.
+100% refund policy if page is not published.</textarea>
+                  </label>
+                </fieldset>
+
+                <fieldset class="wide">
+                  <legend>Line item</legend>
+                  <div class="item-grid">
+                    <label>Description <input name="itemTitle" value="WIKIPEDIA PAGE CREATION" /></label>
+                    <label>Quantity <input name="quantity" type="number" value="1" min="1" /></label>
+                    <label>Rate <input name="rate" type="number" value="750" min="0" /></label>
+                  </div>
+                  <label>
+                    Bullet details, one per line
+                    <textarea name="itemBullets" rows="5">Notability & Source Evaluation
+Research & Information Verification
+Wikipedia Draft Writing
+Citation & Reference Formatting
+Article Submission & Review Handling</textarea>
+                  </label>
+                </fieldset>
+              </form>
+            </article>
+
+            <section class="preview-stage" aria-label="Invoice preview">
+              <div class="preview-toolbar">
+                <div>
+                  <strong>PDF Preview</strong>
+                  <span>Client-facing invoice</span>
+                </div>
+                <button id="downloadInvoiceTop" type="button">Download PDF</button>
+              </div>
+              <article class="invoice-page" id="invoicePage">
+                <header class="invoice-top">
+                  <div class="brand">
+                    <span class="brand-the">The</span>
+                    <span class="brand-name" data-bind="companyName">The WikiStudi</span>
+                    <span class="brand-globe">W</span>
+                  </div>
+                  <div class="company-contact">
+                    <p data-bind="companyPhone">+1 (218) 305-9586</p>
+                    <p data-bind="companyEmail">benjamin.wikieditor@gmail.com</p>
+                  </div>
+                </header>
+
+                <section class="invoice-meta">
+                  <div class="dates">
+                    <p>Invoice Number: <span data-bind="invoiceNumber">WIKI-0164</span></p>
+                    <p>Date Issued: <span data-bind="dateIssued">19/05/2026</span></p>
+                    <p>Due Date: <span data-bind="dueDate">23/05/2026</span></p>
+                    <p>Status: <span data-bind="status">Draft</span></p>
+                  </div>
+                  <div class="bill-to">
+                    <h2>Bill To:</h2>
+                    <strong data-bind="clientName">William Clohesy</strong>
+                    <p data-bind="clientEmail">william.clohesy@uni.edu</p>
+                    <p data-bind="clientPhone"></p>
+                    <p data-bind="clientAddress"></p>
+                  </div>
+                </section>
+
+                <div class="middle-band" aria-hidden="true">
+                  <div class="band-notch"></div>
+                  <div class="watermark">W</div>
+                </div>
+
+                <section class="invoice-table">
+                  <h2 class="side-title">Invoice</h2>
+                  <div class="table-content">
+                    <div class="table-head">
+                      <span>Description</span>
+                      <span>Qty</span>
+                      <span>Rate</span>
+                      <span>Total</span>
+                    </div>
+                    <div class="line-item">
+                      <div>
+                        <h3 data-bind="itemTitle">WIKIPEDIA PAGE CREATION</h3>
+                        <ul id="itemBullets"></ul>
+                      </div>
+                      <span data-bind="quantity">1</span>
+                      <span data-money="rate">$750</span>
+                      <span data-money="lineTotal">$750</span>
+                    </div>
+                    <div class="summary">
+                      <p>Deposit: <span data-money="deposit">$187</span></p>
+                      <p>Remaining: <span data-money="remaining">$563</span></p>
+                    </div>
+                    <div class="grand-total">
+                      <p>Total: <span data-money="lineTotal">$750</span></p>
+                    </div>
+                    <div class="payment">
+                      <div>
+                        <h3>Payment Method</h3>
+                        <a id="paymentLink" href="#" target="_blank" rel="noreferrer">https://link.payoneer.com/Token?t=90505...</a>
+                      </div>
+                      <div class="qr" aria-label="Payment QR code">
+                        <img id="qrCode" alt="Payment QR code" />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <footer class="terms">
+                  <h2>Terms and Conditions</h2>
+                  <p id="termsText"></p>
+                </footer>
+              </article>
+            </section>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="./supabase-config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
