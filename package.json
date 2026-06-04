@@ -1,0 +1,11 @@
+{
+  "name": "wikistudi-invoice-portal",
+  "version": "1.0.0",
+  "description": "WikiStudi Invoice Management Portal",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
