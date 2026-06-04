@@ -658,12 +658,12 @@ loginForm.addEventListener("submit", async (e) => {
   // Directly handle session in case onAuthStateChange doesn't fire
   if (data?.user) {
     currentUser = data.user;
-    await loadInvoices();
-    await loadClients();
-    renderAll();
-    updateInvoicePreview();
     showPortal(data.user);
     setTab("dashboard");
+    try { await loadInvoices(); } catch(e) { console.warn("loadInvoices:", e); }
+    try { await loadClients(); } catch(e) { console.warn("loadClients:", e); }
+    renderAll();
+    updateInvoicePreview();
   }
 });
 
@@ -733,13 +733,14 @@ invoiceRows.addEventListener("click", async (e) => {
 // ── Auth state change (central session handler) ────────────────────────────
 sb.auth.onAuthStateChange(async (event, session) => {
   if (event === "SIGNED_IN" && session?.user) {
+    if (currentUser?.id === session.user.id) return; // already handled by login form
     currentUser = session.user;
-    await loadInvoices();
-    await loadClients();
-    renderAll();
-    updateInvoicePreview();
     showPortal(session.user);
     setTab("dashboard");
+    try { await loadInvoices(); } catch(e) { console.warn("loadInvoices:", e); }
+    try { await loadClients(); } catch(e) { console.warn("loadClients:", e); }
+    renderAll();
+    updateInvoicePreview();
   } else if (event === "SIGNED_OUT") {
     showLogin();
   }
