@@ -626,24 +626,45 @@ function openInvoiceView(dbId) {
 // ── Event listeners ────────────────────────────────────────────────────────
 
 // Login
+const loginError = document.querySelector("#loginError");
+function showLoginError(msg) {
+  loginError.textContent = msg;
+  loginError.classList.remove("hidden");
+}
+function hideLoginError() {
+  loginError.textContent = "";
+  loginError.classList.add("hidden");
+}
+
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn = loginForm.querySelector("button[type=submit]");
   btn.disabled = true;
   btn.textContent = "Signing in…";
+  hideLoginError();
 
   const email    = loginForm.elements.email.value.trim();
   const password = loginForm.elements.password.value;
 
-  const { error } = await sb.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
   btn.disabled = false;
   btn.textContent = "Login to dashboard";
 
   if (error) {
-    flash(error.message || "Login failed.", true);
-    saveMessage.style.position = "absolute";
+    showLoginError(error.message || "Login failed. Check your credentials.");
+    return;
   }
-  // Session change handled by onAuthStateChange below
+
+  // Directly handle session in case onAuthStateChange doesn't fire
+  if (data?.user) {
+    currentUser = data.user;
+    await loadInvoices();
+    await loadClients();
+    renderAll();
+    updateInvoicePreview();
+    showPortal(data.user);
+    setTab("dashboard");
+  }
 });
 
 // Logout
