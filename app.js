@@ -415,9 +415,32 @@ function formatDateDisplay(iso) {
   return `${d}/${m}/${y}`;
 }
 
+// ── Form validation ──────────────────────────────────────────────────────
+const formErrors = document.querySelector("#formErrors");
+function validateInvoiceForm() {
+  const d = getInvoiceData();
+  const errs = [];
+  if (!d.invoiceNumber)  errs.push("Invoice number is required.");
+  if (!d.clientName)     errs.push("Client name is required.");
+  if (!d.clientEmail)    errs.push("Client email is required.");
+  if (d.clientEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.clientEmail))
+    errs.push("Client email is not a valid address.");
+  if (!d.rate || d.rate <= 0)       errs.push("Rate must be greater than 0.");
+  if (!d.quantity || d.quantity < 1) errs.push("Quantity must be at least 1.");
+  return errs;
+}
+
 // ── Save invoice to Supabase ───────────────────────────────────────────────
 async function saveCurrentInvoice() {
   if (!currentUser) return;
+
+  const errs = validateInvoiceForm();
+  if (errs.length) {
+    formErrors.innerHTML = errs.map(e => `<span>⚠ ${escapeText(e)}</span>`).join("");
+    formErrors.classList.remove("hidden");
+    return;
+  }
+  formErrors.classList.add("hidden");
 
   saveInvoiceButton.disabled = true;
   const d = getInvoiceData();
@@ -677,7 +700,10 @@ logoutButton.addEventListener("click", async () => {
 navLinks.forEach((btn) => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
 
 // Invoice form — live preview
-form.addEventListener("input", updateInvoicePreview);
+form.addEventListener("input", () => {
+  updateInvoicePreview();
+  if (formErrors) formErrors.classList.add("hidden");
+});
 
 // Save / new
 saveInvoiceButton.addEventListener("click", saveCurrentInvoice);
